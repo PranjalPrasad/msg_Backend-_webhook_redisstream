@@ -101,9 +101,7 @@ public class RedisConsumerServiceImpl
 
                 } catch (Exception e){
 
-                    System.out.println(
-                            e.getMessage()
-                    );
+                    e.printStackTrace();
                 }
             }
 
@@ -112,9 +110,7 @@ public class RedisConsumerServiceImpl
 
         } catch (Exception e){
 
-            System.out.println(
-                    e.getMessage()
-            );
+            e.printStackTrace();
         }
     }
 }
