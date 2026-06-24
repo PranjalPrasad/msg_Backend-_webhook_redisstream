@@ -17,4 +17,16 @@ public interface WhatsappMessageRepository
             Long id,
             String createdBy
     );
+
+
+    long countByStatusAndCreatedBy(
+            String status,
+            String createdBy
+    );
+
+    long countByCreatedBy(
+            String createdBy
+    );
+
+    
 }

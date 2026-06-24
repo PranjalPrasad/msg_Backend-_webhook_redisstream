@@ -28,21 +28,19 @@ public class SecurityConfig {
                 .csrf(
                         csrf -> csrf.disable()
                 )
-                .authorizeHttpRequests(
-                        auth -> auth
+                .authorizeHttpRequests(auth -> auth
 
-                                .requestMatchers(
-                                        "/auth/**"
-                                )
-                                .permitAll()
+                        .requestMatchers("/auth/**")
+                        .permitAll()
 
-                                .requestMatchers(
-                                        "/webhook/**"
-                                )
-                                .permitAll()
+                        .requestMatchers("/webhook/**")
+                        .permitAll()
 
-                                .anyRequest()
-                                .authenticated()
+                        .requestMatchers("/message-status/**")
+                        .permitAll()
+
+                        .anyRequest()
+                        .authenticated()
                 )
 
                 .sessionManagement(
