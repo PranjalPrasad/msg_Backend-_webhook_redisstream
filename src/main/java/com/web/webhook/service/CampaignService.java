@@ -12,7 +12,8 @@ public interface CampaignService {
 
     List<CampaignResponseDto> getAllCampaigns();
 
-    CampaignResponseDto getCampaignById(Long id);
+    CampaignResponseDto getCampaignById(
+            Long id);
 
     CampaignResponseDto updateCampaign(
             Long id,
@@ -22,5 +23,6 @@ public interface CampaignService {
             Long id,
             CampaignRequestDto requestDto);
 
-    void deleteCampaign(Long id);
+    void deleteCampaign(
+            Long id);
 }

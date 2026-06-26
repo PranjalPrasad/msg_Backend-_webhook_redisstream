@@ -7,8 +7,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface WhatsappMessageRepository
-        extends JpaRepository<WhatsappMessage,Long> {
+        extends JpaRepository<WhatsappMessage, Long> {
 
+    // existing methods — same as before
     List<WhatsappMessage> findByCreatedBy(
             String createdBy
     );
@@ -17,7 +18,6 @@ public interface WhatsappMessageRepository
             Long id,
             String createdBy
     );
-
 
     long countByStatusAndCreatedBy(
             String status,
@@ -28,5 +28,19 @@ public interface WhatsappMessageRepository
             String createdBy
     );
 
-    
+    // us wamid se message dhundhna hoga campaign counter update ke liye
+    Optional<WhatsappMessage> findByMetaMessageId(
+            String metaMessageId
+    );
+
+    // NEW: campaign ke kitne messages sent/delivered/failed hue
+    long countByCampaignIdAndStatus(
+            Long campaignId,
+            String status
+    );
+
+    // NEW: campaign ke total messages
+    long countByCampaignId(
+            Long campaignId
+    );
 }

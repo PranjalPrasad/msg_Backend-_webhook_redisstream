@@ -39,6 +39,9 @@ public class SecurityConfig {
                         .requestMatchers("/message-status/**")
                         .permitAll()
 
+                        .requestMatchers("/campaign-scheduler/**")
+                        .permitAll()
+
                         .anyRequest()
                         .authenticated()
                 )
