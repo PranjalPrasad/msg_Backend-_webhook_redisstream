@@ -46,95 +46,46 @@ public class CampaignExecutionServiceImpl
     }
 
     @Override
-    public CampaignExecutionResponseDto executeCampaign(
-            Long campaignId) {
+    public CampaignExecutionResponseDto executeCampaign(Long campaignId) {
 
-        // campaign fetch karo
-        Campaign campaign =
-                campaignRepository.findById(campaignId)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Campaign Not Found"
-                                ));
+        Campaign campaign = campaignRepository.findById(campaignId)
+                .orElseThrow(() -> new RuntimeException("Campaign not found with id: " + campaignId));
 
-        // campaign ka template fetch karo
-        MessageTemplate template =
-                templateRepository.findById(
-                                campaign.getTemplateId()
-                        )
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Template Not Found"
-                                ));
+        MessageTemplate template = templateRepository.findById(campaign.getTemplateId())
+                .orElseThrow(() -> new RuntimeException("Template not found with id: " + campaign.getTemplateId()));
 
-        // campaign ke group ke saare contacts fetch karo
-        List<ContactGroupMapping> mappings =
-                mappingRepository.findByGroupId(
-                        campaign.getGroupId()
-                );
+        List<ContactGroupMapping> mappings = mappingRepository.findByGroupId(campaign.getGroupId());
 
         int queuedCount = 0;
 
         for (ContactGroupMapping mapping : mappings) {
 
-            // har contact fetch karo
-            Contact contact =
-                    contactRepository.findById(
-                                    mapping.getContactId()
-                            )
-                            .orElseThrow(() ->
-                                    new RuntimeException(
-                                            "Contact Not Found"
-                                    ));
+            Contact contact = contactRepository.findById(mapping.getContactId())
+                    .orElseThrow(() -> new RuntimeException("Contact not found with id: " + mapping.getContactId()));
 
-            // har contact ke liye ek WhatsappMessage banao
             WhatsappMessage message = new WhatsappMessage();
-
-            // contact aur template link karo
             message.setContactId(contact.getId());
             message.setTemplateId(template.getId());
-
-            // FIX: phoneNumber — contact ka actual number
             message.setPhoneNumber(contact.getPhoneNumber());
-
-            // FIX: messageBody — template ka text
             message.setMessageBody(template.getTemplateBody());
-
-            // FIX: campaignId — kaunse campaign ka message hai
-            // yeh delivery webhook aane par campaign counter update karne ke liye chahiye
             message.setCampaignId(campaign.getId());
-
-            // FIX: createdBy — kaunse user ne campaign banaya
             message.setCreatedBy(campaign.getCreatedBy());
-
-            // FIX: timestamps
+            message.setStatus("PENDING");
             message.setCreatedAt(LocalDateTime.now());
             message.setUpdatedAt(LocalDateTime.now());
 
-            // status PENDING rakhte hain
-            // jab Meta ko send hoga tab SENT hoga
-            // jab delivery aayegi tab DELIVERED hoga
-            message.setStatus("PENDING");
+            WhatsappMessage savedMessage = whatsappMessageRepository.save(message);
 
-            // message database mein save karo
-            WhatsappMessage savedMessage =
-                    whatsappMessageRepository.save(message);
-
-            // Redis stream mein sirf message ka ID bhejo
-            // Consumer wahan se ID leke DB se message fetch karega
-            // aur Meta ko bhejega
             try {
-                redisProducerService.publishWebhook(
-                        "MESSAGE_ID=" + savedMessage.getId()
-                );
+                redisProducerService.publishWebhook("MESSAGE_ID=" + savedMessage.getId());
             } catch (Exception e) {
+                System.err.println("Failed to push message to Redis. Message ID: " + savedMessage.getId());
                 e.printStackTrace();
             }
 
             queuedCount++;
         }
 
-        // campaign status PROCESSING karo
         campaign.setStatus("PROCESSING");
         campaign.setTotalContacts(queuedCount);
         campaign.setSentCount(0);
@@ -143,10 +94,9 @@ public class CampaignExecutionServiceImpl
         campaign.setUpdatedAt(LocalDateTime.now());
         campaignRepository.save(campaign);
 
-        // response banao
-        CampaignExecutionResponseDto response =
-                new CampaignExecutionResponseDto();
+        System.out.println("Campaign started. Campaign ID: " + campaignId + " | Total contacts queued: " + queuedCount);
 
+        CampaignExecutionResponseDto response = new CampaignExecutionResponseDto();
         response.setCampaignId(campaignId);
         response.setTotalContacts(queuedCount);
         response.setMessagesQueued(queuedCount);

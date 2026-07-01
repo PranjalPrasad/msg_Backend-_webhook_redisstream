@@ -15,9 +15,7 @@ public class MetaApiServiceImpl implements MetaApiService {
 
     public MetaApiServiceImpl(
             WhatsappAccountRepository whatsappAccountRepository) {
-
-        this.whatsappAccountRepository =
-                whatsappAccountRepository;
+        this.whatsappAccountRepository = whatsappAccountRepository;
     }
 
     @Override
@@ -25,31 +23,24 @@ public class MetaApiServiceImpl implements MetaApiService {
 
         try {
 
-            // step 1: user ka whatsapp account fetch karo
-            // accessToken aur phoneNumberId yahan se aayega
             List<WhatsappAccount> accounts =
-                    whatsappAccountRepository
-                            .findByCreatedBy(message.getCreatedBy());
+                    whatsappAccountRepository.findByCreatedBy(message.getCreatedBy());
 
             if (accounts == null || accounts.isEmpty()) {
-                System.out.println(
-                        "WhatsApp account nahi mila user ke liye: "
-                                + message.getCreatedBy()
-                );
+                System.err.println("No WhatsApp account found for user: " + message.getCreatedBy());
                 return null;
             }
 
-            // pehla active account use karo
             WhatsappAccount account = accounts.get(0);
 
             String phoneNumberId = account.getPhoneNumberId();
             String accessToken = account.getAccessToken();
 
             // ================================================================
-            // META API CALL — END MEIN CONFIGURE HOGI
+            // META API CALL — TO BE CONFIGURED AT THE END OF THE PROJECT
             // ================================================================
-            // Jab Meta ka access token aur phoneNumberId milega
-            // tab neeche ka code uncomment karna:
+            // When Meta access token and phoneNumberId are available,
+            // uncomment the below code and remove the placeholder return:
             //
             // String url = "https://graph.facebook.com/v18.0/"
             //         + phoneNumberId + "/messages";
@@ -63,40 +54,33 @@ public class MetaApiServiceImpl implements MetaApiService {
             //         + "\"recipient_type\": \"individual\","
             //         + "\"to\": \"" + message.getPhoneNumber() + "\","
             //         + "\"type\": \"text\","
-            //         + "\"text\": { \"preview_url\": false, "
-            //         + "\"body\": \"" + message.getMessageBody() + "\" }"
+            //         + "\"text\": { \"preview_url\": false,"
+            //         + " \"body\": \"" + message.getMessageBody() + "\" }"
             //         + "}";
             //
-            // HttpEntity<String> entity =
-            //         new HttpEntity<>(requestBody, headers);
-            //
+            // HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
             // RestTemplate restTemplate = new RestTemplate();
             // ResponseEntity<String> response =
             //         restTemplate.postForEntity(url, entity, String.class);
             //
             // ObjectMapper mapper = new ObjectMapper();
             // JsonNode root = mapper.readTree(response.getBody());
-            // String wamid = root.path("messages")
-            //         .get(0).path("id").asText();
+            // String wamid = root.path("messages").get(0).path("id").asText();
+            // System.out.println("Message sent successfully. WAMID: " + wamid);
             // return wamid;
             // ================================================================
 
-            // ABHI KE LIYE PLACEHOLDER:
-            // Meta configure nahi hai toh dummy ID return karte hain
-            // isse poora flow test ho sakta hai — Redis, DB update, campaign counter
-            // Meta configure hone ke baad yeh line hatana aur upar wala uncomment karna
-            System.out.println(
-                    "META PLACEHOLDER: To="
-                            + message.getPhoneNumber()
-                            + " | Body=" + message.getMessageBody()
-            );
+            // PLACEHOLDER — Remove this block once Meta is configured
+            System.out.println("[META PLACEHOLDER] Message queued for sending."
+                    + " To: " + message.getPhoneNumber()
+                    + " | Body: " + message.getMessageBody()
+                    + " | Account: " + phoneNumberId);
 
             return "DUMMY_WAMID_" + message.getId();
 
         } catch (Exception e) {
-            System.err.println(
-                    "MetaApiService error: " + e.getMessage()
-            );
+            System.err.println("MetaApiService error for message ID "
+                    + message.getId() + ": " + e.getMessage());
             e.printStackTrace();
             return null;
         }

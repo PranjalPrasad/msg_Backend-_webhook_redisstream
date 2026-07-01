@@ -23,6 +23,10 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    // NEW: user ka status — ACTIVE / INACTIVE
+    // admin is field se sub-user ko enable/disable kar sakta hai
+    private String status;
+
     private LocalDateTime createdAt;
 
     public Long getId() {
@@ -63,6 +67,14 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public LocalDateTime getCreatedAt() {

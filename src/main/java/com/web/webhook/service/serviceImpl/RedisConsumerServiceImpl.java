@@ -22,8 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class RedisConsumerServiceImpl
-        implements RedisConsumerService {
+public class RedisConsumerServiceImpl implements RedisConsumerService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
@@ -51,18 +50,17 @@ public class RedisConsumerServiceImpl
         try {
 
             List<MapRecord<String, Object, Object>> records =
-                    redisTemplate.opsForStream()
-                            .read(
-                                    Consumer.from(
-                                            StreamConstants.WEBHOOK_GROUP,
-                                            StreamConstants.CONSUMER_NAME
-                                    ),
-                                    StreamReadOptions.empty().count(10),
-                                    StreamOffset.create(
-                                            StreamConstants.WEBHOOK_STREAM,
-                                            ReadOffset.lastConsumed()
-                                    )
-                            );
+                    redisTemplate.opsForStream().read(
+                            Consumer.from(
+                                    StreamConstants.WEBHOOK_GROUP,
+                                    StreamConstants.CONSUMER_NAME
+                            ),
+                            StreamReadOptions.empty().count(10),
+                            StreamOffset.create(
+                                    StreamConstants.WEBHOOK_STREAM,
+                                    ReadOffset.lastConsumed()
+                            )
+                    );
 
             if (records == null || records.isEmpty()) {
                 return;
@@ -72,145 +70,96 @@ public class RedisConsumerServiceImpl
 
                 try {
 
-                    String payload =
-                            record.getValue()
-                                    .get("payload")
-                                    .toString();
+                    String payload = record.getValue().get("payload").toString();
 
-                    System.out.println(
-                            "CONSUMER RECEIVED: " + payload
-                    );
-
-                    // Redis mein 2 tarah ke messages aate hain:
-                    //
-                    // TYPE 1 — Campaign execution se:
-                    //   format: "MESSAGE_ID=123"
-                    //   kaam: Meta ko actual message bhejna hai
-                    //
-                    // TYPE 2 — Meta webhook se (WebhookController ne push kiya):
-                    //   format: JSON string
-                    //   kaam: delivery status save karna + campaign counter update
-                    //
-                    // dono ko alag alag handle karte hain
+                    System.out.println("[CONSUMER] Received payload: " + payload);
 
                     if (payload.startsWith("MESSAGE_ID=")) {
-
-                        // TYPE 1: campaign message — Meta ko bhejna hai
                         handleCampaignMessage(payload);
-
                     } else {
-
-                        // TYPE 2: Meta webhook event — status save karna hai
                         handleWebhookEvent(payload);
                     }
 
-                    // message process ho gaya — acknowledge karo
-                    redisTemplate.opsForStream()
-                            .acknowledge(
-                                    StreamConstants.WEBHOOK_STREAM,
-                                    StreamConstants.WEBHOOK_GROUP,
-                                    record.getId()
-                            );
+                    redisTemplate.opsForStream().acknowledge(
+                            StreamConstants.WEBHOOK_STREAM,
+                            StreamConstants.WEBHOOK_GROUP,
+                            record.getId()
+                    );
 
-                    System.out.println("MESSAGE ACKNOWLEDGED");
+                    System.out.println("[CONSUMER] Message acknowledged. Record ID: " + record.getId());
 
                 } catch (Exception e) {
+                    System.err.println("[CONSUMER] Error processing record: " + e.getMessage());
                     e.printStackTrace();
                 }
             }
 
         } catch (Exception e) {
+            System.err.println("[CONSUMER] Error reading from stream: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    // TYPE 1 handler — campaign message Meta ko bhejna hai
     private void handleCampaignMessage(String payload) {
 
         try {
 
-            // "MESSAGE_ID=123" se 123 nikalo
-            Long messageId = Long.parseLong(
-                    payload.replace("MESSAGE_ID=", "").trim()
-            );
+            Long messageId = Long.parseLong(payload.replace("MESSAGE_ID=", "").trim());
 
-            // DB se message fetch karo
-            Optional<WhatsappMessage> optional =
-                    whatsappMessageRepository.findById(messageId);
+            Optional<WhatsappMessage> optional = whatsappMessageRepository.findById(messageId);
 
             if (optional.isEmpty()) {
-                System.out.println(
-                        "Message nahi mila ID ke liye: " + messageId
-                );
+                System.err.println("[CONSUMER] Message not found for ID: " + messageId);
                 return;
             }
 
             WhatsappMessage message = optional.get();
 
-            System.out.println(
-                    "MESSAGE BHEJ RAHA HAI: " + message.getPhoneNumber()
-            );
+            System.out.println("[CONSUMER] Sending message to: " + message.getPhoneNumber()
+                    + " | Message ID: " + messageId);
 
-            // Meta ko message bhejo
-            // abhi DUMMY_WAMID return hoga
-            // Meta configure hone ke baad actual wamid aayega
-            String metaMessageId =
-                    metaApiService.sendMessage(message);
+            String metaMessageId = metaApiService.sendMessage(message);
 
             if (metaMessageId != null) {
 
-                // wamid save karo — baad mein delivery webhook se match karega
                 message.setMetaMessageId(metaMessageId);
                 message.setStatus("SENT");
                 message.setUpdatedAt(LocalDateTime.now());
                 whatsappMessageRepository.save(message);
 
-                System.out.println(
-                        "MESSAGE SENT. Meta ID: " + metaMessageId
-                );
+                System.out.println("[CONSUMER] Message sent successfully."
+                        + " Message ID: " + messageId
+                        + " | Meta WAMID: " + metaMessageId);
 
             } else {
 
-                // Meta se null aaya matlab error
                 message.setStatus("FAILED");
                 message.setUpdatedAt(LocalDateTime.now());
                 whatsappMessageRepository.save(message);
 
-                System.out.println(
-                        "MESSAGE FAILED. ID: " + messageId
-                );
+                System.err.println("[CONSUMER] Message sending failed. Message ID: " + messageId);
             }
 
         } catch (Exception e) {
-            System.err.println(
-                    "handleCampaignMessage error: " + e.getMessage()
-            );
+            System.err.println("[CONSUMER] handleCampaignMessage error: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    // TYPE 2 handler — Meta webhook event process karna hai
-    // yeh existing logic same hai — sirf alag method mein daala hai
     private void handleWebhookEvent(String payload) {
 
         try {
 
-            WebhookRequestDto dto =
-                    objectMapper.readValue(
-                            payload,
-                            WebhookRequestDto.class
-                    );
+            WebhookRequestDto dto = objectMapper.readValue(payload, WebhookRequestDto.class);
 
-            System.out.println("WEBHOOK EVENT PROCESS HO RAHA HAI");
+            System.out.println("[CONSUMER] Processing webhook event.");
 
             webhookService.processWebhook(dto, payload);
 
-            System.out.println("WEBHOOK EVENT PROCESS HUA");
+            System.out.println("[CONSUMER] Webhook event processed successfully.");
 
         } catch (Exception e) {
-            System.err.println(
-                    "handleWebhookEvent error: " + e.getMessage()
-            );
+            System.err.println("[CONSUMER] handleWebhookEvent error: " + e.getMessage());
             e.printStackTrace();
         }
     }

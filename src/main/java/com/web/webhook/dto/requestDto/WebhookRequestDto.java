@@ -94,6 +94,10 @@ public class WebhookRequestDto {
         private String id;
         private String type;
 
+        // NEW: incoming message ka actual text body
+        // Meta ka real format: "text": { "body": "Hello" }
+        private Text text;
+
         public String getFrom() { return from; }
         public void setFrom(String from) { this.from = from; }
 
@@ -102,5 +106,17 @@ public class WebhookRequestDto {
 
         public String getType() { return type; }
         public void setType(String type) { this.type = type; }
+
+        public Text getText() { return text; }
+        public void setText(Text text) { this.text = text; }
+    }
+
+    // NEW: Meta ke text object ko represent karta hai
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Text {
+        private String body;
+
+        public String getBody() { return body; }
+        public void setBody(String body) { this.body = body; }
     }
 }
