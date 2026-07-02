@@ -31,8 +31,6 @@ public interface AutoReplyService {
             Long id
     );
 
-    // webhook ke andar incoming message ka keyword match karne ke liye
-    // MetaApiService configure hone ke baad isse reply bhejega
     String findMatchingReply(
             String incomingMessageText
     );

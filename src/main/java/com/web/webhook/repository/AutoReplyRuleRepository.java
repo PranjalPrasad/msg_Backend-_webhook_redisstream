@@ -20,7 +20,6 @@ public interface AutoReplyRuleRepository
             String createdBy
     );
 
-    // active rules fetch karne ke liye — webhook ke andar match karne ke liye
     List<AutoReplyRule> findByStatus(
             String status
     );

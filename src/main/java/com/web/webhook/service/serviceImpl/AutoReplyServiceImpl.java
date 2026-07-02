@@ -21,7 +21,8 @@ public class AutoReplyServiceImpl
     public AutoReplyServiceImpl(
             AutoReplyRuleRepository autoReplyRuleRepository) {
 
-        this.autoReplyRuleRepository = autoReplyRuleRepository;
+        this.autoReplyRuleRepository =
+                autoReplyRuleRepository;
     }
 
     private String getLoggedInUserEmail() {
@@ -46,11 +47,13 @@ public class AutoReplyServiceImpl
         dto.setCreatedBy(rule.getCreatedBy());
         dto.setCreatedAt(
                 rule.getCreatedAt() != null
-                        ? rule.getCreatedAt().toString() : null
+                        ? rule.getCreatedAt().toString()
+                        : null
         );
         dto.setUpdatedAt(
                 rule.getUpdatedAt() != null
-                        ? rule.getUpdatedAt().toString() : null
+                        ? rule.getUpdatedAt().toString()
+                        : null
         );
 
         return dto;
@@ -66,13 +69,11 @@ public class AutoReplyServiceImpl
         rule.setRuleName(requestDto.getRuleName());
         rule.setKeyword(requestDto.getKeyword());
         rule.setReplyText(requestDto.getReplyText());
-
-        // status na bheja ho toh default ACTIVE
         rule.setStatus(
                 requestDto.getStatus() != null
-                        ? requestDto.getStatus() : "ACTIVE"
+                        ? requestDto.getStatus()
+                        : "ACTIVE"
         );
-
         rule.setCreatedBy(email);
         rule.setCreatedAt(LocalDateTime.now());
         rule.setUpdatedAt(LocalDateTime.now());
@@ -80,8 +81,10 @@ public class AutoReplyServiceImpl
         AutoReplyRule saved =
                 autoReplyRuleRepository.save(rule);
 
-        System.out.println("[AUTO REPLY] Rule created: " + saved.getRuleName()
-                + " | Keyword: " + saved.getKeyword());
+        System.out.println("[AUTO REPLY] Rule created: "
+                + saved.getRuleName()
+                + " | Keyword: " + saved.getKeyword()
+                + " | By: " + email);
 
         return convertToDto(saved);
     }
@@ -91,10 +94,15 @@ public class AutoReplyServiceImpl
 
         String email = getLoggedInUserEmail();
 
+        System.out.println("[AUTO REPLY] Fetching rules for: " + email);
+
         List<AutoReplyRule> rules =
                 autoReplyRuleRepository.findByCreatedBy(email);
 
-        List<AutoReplyResponseDto> result = new ArrayList<>();
+        System.out.println("[AUTO REPLY] Rules found: " + rules.size());
+
+        List<AutoReplyResponseDto> result =
+                new ArrayList<>();
 
         for (AutoReplyRule rule : rules) {
             result.add(convertToDto(rule));
@@ -141,7 +149,8 @@ public class AutoReplyServiceImpl
         AutoReplyRule updated =
                 autoReplyRuleRepository.save(rule);
 
-        System.out.println("[AUTO REPLY] Rule updated: " + updated.getId());
+        System.out.println("[AUTO REPLY] Rule updated: "
+                + updated.getId());
 
         return convertToDto(updated);
     }
@@ -160,7 +169,6 @@ public class AutoReplyServiceImpl
                                 "Auto reply rule not found with id: " + id
                         ));
 
-        // sirf jo field bheja ho wahi update karo
         if (requestDto.getRuleName() != null) {
             rule.setRuleName(requestDto.getRuleName());
         }
@@ -182,7 +190,8 @@ public class AutoReplyServiceImpl
         AutoReplyRule patched =
                 autoReplyRuleRepository.save(rule);
 
-        System.out.println("[AUTO REPLY] Rule patched: " + patched.getId());
+        System.out.println("[AUTO REPLY] Rule patched: "
+                + patched.getId());
 
         return convertToDto(patched);
     }
@@ -225,15 +234,20 @@ public class AutoReplyServiceImpl
                     && lowerCaseMessage.contains(
                     rule.getKeyword().toLowerCase())) {
 
-                System.out.println("[AUTO REPLY] Keyword matched: "
-                        + rule.getKeyword() + " | Rule: " + rule.getRuleName());
+                System.out.println(
+                        "[AUTO REPLY] Keyword matched: "
+                                + rule.getKeyword()
+                                + " | Rule: " + rule.getRuleName()
+                );
 
                 return rule.getReplyText();
             }
         }
 
-        System.out.println("[AUTO REPLY] No matching rule found for message: "
-                + incomingMessageText);
+        System.out.println(
+                "[AUTO REPLY] No matching rule found for: "
+                        + incomingMessageText
+        );
 
         return null;
     }

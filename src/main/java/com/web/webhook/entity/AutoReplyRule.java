@@ -1,7 +1,6 @@
 package com.web.webhook.entity;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -14,13 +13,11 @@ public class AutoReplyRule {
 
     private String ruleName;
 
-    // keyword jo incoming message mein match karna hai (case-insensitive)
     private String keyword;
 
     @Column(columnDefinition = "TEXT")
     private String replyText;
 
-    // ACTIVE / INACTIVE — UI mein toggle switch ke liye
     private String status;
 
     private String createdBy;
@@ -29,67 +26,27 @@ public class AutoReplyRule {
 
     private LocalDateTime updatedAt;
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getRuleName() { return ruleName; }
+    public void setRuleName(String ruleName) { this.ruleName = ruleName; }
 
-    public String getRuleName() {
-        return ruleName;
-    }
+    public String getKeyword() { return keyword; }
+    public void setKeyword(String keyword) { this.keyword = keyword; }
 
-    public void setRuleName(String ruleName) {
-        this.ruleName = ruleName;
-    }
+    public String getReplyText() { return replyText; }
+    public void setReplyText(String replyText) { this.replyText = replyText; }
 
-    public String getKeyword() {
-        return keyword;
-    }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
-    public void setKeyword(String keyword) {
-        this.keyword = keyword;
-    }
+    public String getCreatedBy() { return createdBy; }
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
 
-    public String getReplyText() {
-        return replyText;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public void setReplyText(String replyText) {
-        this.replyText = replyText;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }
