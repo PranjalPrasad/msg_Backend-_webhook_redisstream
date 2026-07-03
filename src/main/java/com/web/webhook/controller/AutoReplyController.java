@@ -23,8 +23,7 @@ public class AutoReplyController {
     @PostMapping("/rules")
     public ResponseEntity<AutoReplyResponseDto>
     createRule(
-            @RequestBody
-            AutoReplyRequestDto requestDto) {
+            @RequestBody AutoReplyRequestDto requestDto) {
 
         return ResponseEntity.ok(
                 autoReplyService.createRule(requestDto)
@@ -42,8 +41,7 @@ public class AutoReplyController {
 
     @GetMapping("/rules/{id}")
     public ResponseEntity<AutoReplyResponseDto>
-    getRuleById(
-            @PathVariable Long id) {
+    getRuleById(@PathVariable Long id) {
 
         return ResponseEntity.ok(
                 autoReplyService.getRuleById(id)
@@ -54,8 +52,7 @@ public class AutoReplyController {
     public ResponseEntity<AutoReplyResponseDto>
     updateRule(
             @PathVariable Long id,
-            @RequestBody
-            AutoReplyRequestDto requestDto) {
+            @RequestBody AutoReplyRequestDto requestDto) {
 
         return ResponseEntity.ok(
                 autoReplyService.updateRule(id, requestDto)
@@ -66,8 +63,7 @@ public class AutoReplyController {
     public ResponseEntity<AutoReplyResponseDto>
     patchRule(
             @PathVariable Long id,
-            @RequestBody
-            AutoReplyRequestDto requestDto) {
+            @RequestBody AutoReplyRequestDto requestDto) {
 
         return ResponseEntity.ok(
                 autoReplyService.patchRule(id, requestDto)
@@ -76,8 +72,7 @@ public class AutoReplyController {
 
     @DeleteMapping("/rules/{id}")
     public ResponseEntity<String>
-    deleteRule(
-            @PathVariable Long id) {
+    deleteRule(@PathVariable Long id) {
 
         autoReplyService.deleteRule(id);
 
